@@ -5,14 +5,158 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:o="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:local="clr-namespace:TextTranscoder"
     mc:Ignorable="d"
     Icon="/Resources/icon.ico"
     WindowStartupLocation="CenterScreen"
+    DataContext="{Binding Source={StaticResource MainWindowVM}}"
+    d:DataContext="{d:DesignInstance Type=local:MainWindowVM}"
     Title="文本转码器"
-    Height="450"
-    Width="800">
-    <Grid>
-
+    Height="500"
+    Width="600"
+    ResizeMode="CanMinimize">
+    <Window.Resources>
+        <Geometry o:Freeze="True" x:Key="FileGeometry">M815.104 69.632q27.648 25.6 44.032 42.496t25.088 28.672 10.752 19.968 2.048 14.336l0 16.384-151.552 0q-10.24 0-17.92-7.68t-12.8-17.92-7.68-20.992-2.56-16.896l0-126.976 3.072 0q8.192 0 16.896 2.56t19.968 9.728 28.16 20.48 42.496 35.84zM640 129.024q0 20.48 6.144 42.496t19.456 40.96 33.792 31.232 48.128 12.288l149.504 0 0 577.536q0 29.696-11.776 53.248t-31.232 39.936-43.008 25.6-46.08 9.216l-503.808 0q-19.456 0-42.496-11.264t-43.008-29.696-33.28-41.984-13.312-49.152l0-696.32q0-21.504 9.728-44.544t26.624-42.496 38.4-32.256 45.056-12.8l391.168 0 0 128zM704.512 768q26.624 0 45.056-18.944t18.432-45.568-18.432-45.056-45.056-18.432l-384 0q-26.624 0-45.056 18.432t-18.432 45.056 18.432 45.568 45.056 18.944l384 0zM768 448.512q0-26.624-18.432-45.568t-45.056-18.944l-384 0q-26.624 0-45.056 18.944t-18.432 45.568 18.432 45.056 45.056 18.432l384 0q26.624 0 45.056-18.432t18.432-45.056z</Geometry>
+        <Geometry o:Freeze="True" x:Key="FolderGeometry">M855.04 385.024q19.456 2.048 38.912 10.24t33.792 23.04 21.504 37.376 2.048 54.272q-2.048 8.192-8.192 40.448t-14.336 74.24-18.432 86.528-19.456 76.288q-5.12 18.432-14.848 37.888t-25.088 35.328-36.864 26.112-51.2 10.24l-567.296 0q-21.504 0-44.544-9.216t-42.496-26.112-31.744-40.96-12.288-53.76l0-439.296q0-62.464 33.792-97.792t95.232-35.328l503.808 0q22.528 0 46.592 8.704t43.52 24.064 31.744 35.84 12.288 44.032l0 11.264-53.248 0q-40.96 0-95.744-0.512t-116.736-0.512-115.712-0.512-92.672-0.512l-47.104 0q-26.624 0-41.472 16.896t-23.04 44.544q-8.192 29.696-18.432 62.976t-18.432 61.952q-10.24 33.792-20.48 65.536-2.048 8.192-2.048 13.312 0 17.408 11.776 29.184t29.184 11.776q31.744 0 43.008-39.936l54.272-198.656q133.12 1.024 243.712 1.024l286.72 0z</Geometry>
+        <Geometry o:Freeze="True" x:Key="CompleteGeometry">M514.048 59.392q93.184 0 174.592 35.328t142.336 96.768 96.256 143.36 35.328 175.104-35.328 175.616-96.256 143.872-142.336 96.768-174.592 35.328-175.104-35.328-142.848-96.768-96.256-143.872-35.328-175.616 35.328-175.104 96.256-143.36 142.848-96.768 175.104-35.328zM795.648 423.936q18.432-18.432 19.456-45.568t-17.408-45.568-45.056-17.92-45.056 18.944l-288.768 288.768-99.328-98.304q-18.432-18.432-45.056-18.944t-45.056 17.92-18.944 43.52 17.92 43.52l142.336 143.36q18.432 18.432 48.128 17.92t48.128-18.944l-4.096 4.096z</Geometry>
+    </Window.Resources>
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="5">
+            <hc:UniformSpacingPanel Orientation="Horizontal" ItemHorizontalAlignment="Center" Spacing="10">
+                <TextBlock
+                    Text="编码选项"
+                    Padding="5"
+                    Background="{StaticResource BackgroundBrush}"
+                    TextAlignment="Center" />
+                <TextBlock Text="{Binding SystemDefaultEncoding, StringFormat=系统默认编码：{0}}" />
+                <hc:ElementGroup Orientation="Horizontal" Layout="Stack"  HorizontalAlignment="Center">
+                    <Border Style="{StaticResource BorderRegion}" Padding="6 0">
+                        <TextBlock Text="输入编码" VerticalAlignment="Center" />
+                    </Border>
+                    <ComboBox
+                        Style="{StaticResource ComboBoxExtend}"
+                        Width="120"
+                        ItemsSource="{Binding InputEncodingList}"
+                        SelectedIndex="{Binding SelectedInputEncodingIndex}" />
+                </hc:ElementGroup>
+                <hc:ElementGroup Orientation="Horizontal" Layout="Stack"  HorizontalAlignment="Center">
+                    <Border Style="{StaticResource BorderRegion}" Padding="6 0">
+                        <TextBlock Text="输出编码" VerticalAlignment="Center" />
+                    </Border>
+                    <ComboBox
+                        Style="{StaticResource ComboBoxExtend}"
+                        Width="120"
+                        ItemsSource="{Binding OutputEncodingList}"
+                        SelectedIndex="{Binding SelectedOutputEncodingIndex}" />
+                </hc:ElementGroup>
+            </hc:UniformSpacingPanel>
+        </Border>
+        <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="5" Margin="0 5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="130"/>
+                </Grid.ColumnDefinitions>
+                <ListView
+                    Grid.Column="0"
+                    Style="{StaticResource ListView.Small}"
+                    ItemsSource="{Binding InputPathList}"
+                    SelectedIndex="{Binding SelectedInputPathListIndex}" 
+                    HorizontalAlignment="Stretch">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="类型" Width="50">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="20" Height="20" Margin="4.5 0 0 0">
+                                            <Path>
+                                                <Path.Style>
+                                                    <Style TargetType="Path" BasedOn="{StaticResource PathBaseStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                                                <Setter Property="Data" Value="{StaticResource FolderGeometry}"/>
+                                                                <Setter Property="Fill" Value="#FFD76A"/>
+                                                                <Setter Property="ToolTip" Value="文件夹"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsDirectory}" Value="False">
+                                                                <Setter Property="Data" Value="{StaticResource FileGeometry}"/>
+                                                                <Setter Property="Fill" Value="#8A8A8A"/>
+                                                                <Setter Property="ToolTip" Value="文件"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="路径" Width="300" DisplayMemberBinding="{Binding Path}" />
+                            <GridViewColumn Header="状态" Width="50">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="18" Height="18"  Margin="4.5 0 0 0">
+                                            <Path Data="{StaticResource CompleteGeometry}">
+                                                <Path.Style>
+                                                    <Style TargetType="Path" BasedOn="{StaticResource PathBaseStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                                                <Setter Property="Fill" Value="#2DB84D"/>
+                                                                <Setter Property="ToolTip" Value="已完成"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsComplete}" Value="False">
+                                                                <Setter Property="Fill" Value="#bfbfbf"/>
+                                                                <Setter Property="ToolTip" Value="未完成"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <Border Grid.Column="1" Padding="15">
+                    <hc:UniformSpacingPanel Orientation="Vertical" Spacing="10" VerticalAlignment="Center">
+                        <Button Content="添加文件" Command="{Binding AddFileCommand}"/>
+                        <Button Content="添加文件夹" Command="{Binding AddFolderCommand}"/>
+                        <Button Content="移除选中" Command="{Binding RemoveSelectedCommand}"/>
+                        <Button Content="清空列表" Command="{Binding ClearListCommand}"/>
+                    </hc:UniformSpacingPanel>
+                </Border>
+            </Grid>
+        </Border>
+        
+        <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="5">
+            <hc:UniformSpacingPanel Orientation="Vertical" ItemHorizontalAlignment="Center" Spacing="10">
+                <hc:ElementGroup Orientation="Horizontal" Layout="Stack" >
+                    <Border Style="{StaticResource BorderRegion}" Padding="6 0">
+                        <TextBlock Text="输出目录" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBox Width="200" Text="{Binding OutputDirectory}"/>
+                    <Button Content="浏览" Command="{Binding BrowseOutputDirectoryCommand}"/>
+                </hc:ElementGroup>
+                <ToggleButton
+                    Style="{StaticResource ToggleButtonSwitch}"
+                    Content="覆盖原始文件"
+                    IsChecked="{Binding OverwriteSourceFile}"
+                    HorizontalAlignment="Center" />
+                <ToggleButton
+                    Style="{StaticResource ToggleButtonSwitch}"
+                    Content="文件夹递归遍历"
+                    IsChecked="{Binding FolderRecursiveTraversal}"
+                    HorizontalAlignment="Center" />
+                <Button Content="开始转换" Command="{Binding StartTranscodeCommand}"/>
+            </hc:UniformSpacingPanel>
+        </Border>
     </Grid>
 </hc:Window>

@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Data;
+using System.Text;
 using System.Windows;
 
 namespace TextTranscoder
@@ -29,6 +30,9 @@ namespace TextTranscoder
                 HandyControl.Controls.MessageBox.Error(args.Exception.ToString(), "未发现的异常");
                 args.SetObserved();
             };
+
+            // 注册编码提供程序
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
     }
 

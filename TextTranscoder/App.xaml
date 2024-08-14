@@ -1,12 +1,15 @@
 ﻿<Application x:Class="TextTranscoder.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:d1P1="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d1P1:Ignorable="d"
              xmlns:local="clr-namespace:TextTranscoder"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          <ResourceDictionary>
-            <!--ViewModel定位器-->
-            <!--<vm:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:RobotPlatformPositioning.ViewModel" d:IsDataSource="True" />-->
+            <!--ViewModel-->
+            <local:MainWindowVM x:Key="MainWindowVM" d:IsDataSource="True" />
             <ResourceDictionary.MergedDictionaries>
                 <!--HandyControl-->
                 <hc:ThemeResources xmlns:hc="https://handyorg.github.io/handycontrol" />
