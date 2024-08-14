@@ -1,0 +1,19 @@
+﻿<Application x:Class="TextTranscoder.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TextTranscoder"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         <ResourceDictionary>
+            <!--ViewModel定位器-->
+            <!--<vm:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:RobotPlatformPositioning.ViewModel" d:IsDataSource="True" />-->
+            <ResourceDictionary.MergedDictionaries>
+                <!--HandyControl-->
+                <hc:ThemeResources xmlns:hc="https://handyorg.github.io/handycontrol" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                <!--自定义样式-->
+                <!--<ResourceDictionary Source="/Style.xaml" />-->
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
