@@ -1,27 +1,32 @@
-﻿namespace TextTranscoder
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace TextTranscoder
 {
     /// <summary>
     /// 输入路径信息
     /// </summary>
-    public class InputPathInfo
+    public partial class InputPathInfo : ObservableObject
     {
         /// <summary>是否为目录</summary>
-        public bool IsDirectory { get; set; }
+        [ObservableProperty]
+        private bool _isDirectory;
 
         /// <summary>路径</summary>
-        public string Path { get; set; } = string.Empty;
+        [ObservableProperty]
+        private string _path = string.Empty;
 
         /// <summary>是否转码完成</summary>
-        public bool IsComplete { get; set; }
+        [ObservableProperty]
+        private bool _isComplete;
 
         public InputPathInfo() { }
 
         /// <summary>
-        /// 
+        /// 实例化一个输入路径信息
         /// </summary>
-        /// <param name="isDirectory"></param>
-        /// <param name="path"></param>
-        /// <param name="isComplete"></param>
+        /// <param name="isDirectory">是否为目录</param>
+        /// <param name="path">路径</param>
+        /// <param name="isComplete">是否转码完成</param>
         public InputPathInfo(bool isDirectory, string path, bool isComplete)
         {
             IsDirectory = isDirectory;
