@@ -224,15 +224,21 @@
                     Layout="Stack"
                     IsEnabled="{Binding OverwriteSourceFile, Converter={StaticResource Boolean2BooleanReConverter}}"
                     SizeChanged="ElementGroup_SizeChanged">
-                    <Border Style="{StaticResource BorderRegion}" Background="{StaticResource DarkDefaultBrush}" Padding="6 0" AllowDrop="True">
+                    <Border Style="{StaticResource BorderRegion}" Background="{StaticResource DarkDefaultBrush}" Padding="6 0">
+                        <TextBlock Text="输出目录：" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBox
+                        x:Name="TextBox_OutputDirectory"
+                        MinWidth="210"
+                        IsReadOnly="True"
+                        AllowDrop="True"
+                        Text="{Binding OutputDirectory}">
                         <hc:Interaction.Triggers>
                             <hc:EventTrigger EventName="Drop">
                                 <hc:EventToCommand Command="{Binding OutputDirectoryDropCommand}" PassEventArgsToCommand="True"/>
                             </hc:EventTrigger>
                         </hc:Interaction.Triggers>
-                        <TextBlock Text="输出目录：" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBox x:Name="TextBox_OutputDirectory" MinWidth="210" IsReadOnly="True" Text="{Binding OutputDirectory}" />
+                    </TextBox>
                     <Button Content="浏览" Command="{Binding BrowseOutputDirectoryCommand}"/>
                 </hc:ElementGroup>
             </DockPanel>

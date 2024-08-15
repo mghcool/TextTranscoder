@@ -19,6 +19,11 @@ namespace TextTranscoder
         public MainWindow()
         {
             InitializeComponent();
+            TextBox_OutputDirectory.PreviewDragOver += (s, e) =>
+            {
+                // 这里必须订阅处理PreviewDragOver事件，否则AllowDrop="True"无效
+                e.Handled = true;
+            };
         }
 
         private void ListView_SizeChanged(object sender, SizeChangedEventArgs e)
