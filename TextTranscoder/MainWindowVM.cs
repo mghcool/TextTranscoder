@@ -75,6 +75,9 @@ namespace TextTranscoder
         [ObservableProperty]
         private string _transcodeingDialogLog = string.Empty;
 
+        /// <summary>是否自动检测输入编码</summary>
+        private bool _isAutoDetectionEncoding => SelectedInputEncodingIndex == 0;
+
         public MainWindowVM()
         {
             SystemDefaultEncodingName = SystemDefaultEncoding.HeaderName.ToUpper();
@@ -239,35 +242,59 @@ namespace TextTranscoder
             LogClear();
             Dialog dialog = Dialog.Show<TranscodeingDialog>();
             IsTranscoding = true;
-            Encoding outEncoding;
+
+            Encoding outputEncoding;
             if (SelectedOutputEncodingIndex == 0)
-                outEncoding = SystemDefaultEncoding;
+                outputEncoding = SystemDefaultEncoding;
             else if (SelectedOutputEncodingIndex == 1)
-                outEncoding = new UTF8Encoding(false);
+                outputEncoding = new UTF8Encoding(false);
             else if (SelectedOutputEncodingIndex == 2)
-                outEncoding = new UTF8Encoding(true);
+                outputEncoding = new UTF8Encoding(true);
             else if (SelectedOutputEncodingIndex == 3)
-                outEncoding = new UnicodeEncoding(false, false);
+                outputEncoding = new UnicodeEncoding(false, false);
             else if (SelectedOutputEncodingIndex == 4)
-                outEncoding = new UnicodeEncoding(true, false);
+                outputEncoding = new UnicodeEncoding(true, false);
             else if (SelectedOutputEncodingIndex == 5)
-                outEncoding = new UTF32Encoding(false, false);
+                outputEncoding = new UTF32Encoding(false, false);
             else if (SelectedOutputEncodingIndex == 6)
-                outEncoding = new UTF32Encoding(true, false);
+                outputEncoding = new UTF32Encoding(true, false);
             else
-                outEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
+                outputEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
+
+            Encoding? inputEncoding = null;
+            if (SelectedInputEncodingIndex == 0)
+                inputEncoding = null;
+            else if (SelectedInputEncodingIndex == 1)
+                inputEncoding = SystemDefaultEncoding;
+            else if (SelectedInputEncodingIndex == 2)
+                inputEncoding = new UTF8Encoding(false);
+            else if (SelectedInputEncodingIndex == 3)
+                inputEncoding = new UTF8Encoding(true);
+            else if (SelectedInputEncodingIndex == 4)
+                inputEncoding = new UnicodeEncoding(false, false);
+            else if (SelectedInputEncodingIndex == 5)
+                inputEncoding = new UnicodeEncoding(true, false);
+            else if (SelectedInputEncodingIndex == 6)
+                inputEncoding = new UTF32Encoding(false, false);
+            else if (SelectedInputEncodingIndex == 7)
+                inputEncoding = new UTF32Encoding(true, false);
+            else
+                inputEncoding = Encoding.GetEncoding(InputEncodingList[SelectedInputEncodingIndex]);
+
+            LogOut($"转码信息，输入编码：{InputEncodingList[SelectedInputEncodingIndex]}，输出编码：{OutputEncodingList[SelectedOutputEncodingIndex]} 。");
+
             await Task.Run(() =>
             {
                 foreach (InputPathInfo inputPathInfo in InputPathList)
                 {
                     if (inputPathInfo.IsDirectory)
                     {
-                        TranscodeFolder(inputPathInfo.Path, outEncoding);
+                        TranscodeFolder(inputPathInfo.Path, outputEncoding, inputEncoding);
                         inputPathInfo.IsComplete = true;
                     }
                     else
                     {
-                        inputPathInfo.IsComplete = TranscodeFile(inputPathInfo.Path, outEncoding);
+                        inputPathInfo.IsComplete = TranscodeFile(inputPathInfo.Path, outputEncoding, inputEncoding);
                     }
                 }
             });
@@ -277,9 +304,11 @@ namespace TextTranscoder
         /// <summary>
         /// 转码文件
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="targetEncoding"></param>
-        private bool TranscodeFile(string filePath, Encoding targetEncoding)
+        /// <param name="filePath">文件路径</param>
+        /// <param name="targetEncoding">目标编码</param>
+        /// <param name="sourceEncoding">源编码，设置为null即为自动识别</param>
+        /// <returns></returns>
+        private bool TranscodeFile(string filePath, Encoding targetEncoding, Encoding? sourceEncoding = null)
         {
             FileInfo fileInfo = new FileInfo(filePath);
             foreach (string filter in FilterLists)
@@ -315,13 +344,15 @@ namespace TextTranscoder
                 LogOut($"文件可能为非文本。 {filePath}", CompletedStatus.跳过);
                 return false;
             }
-            
-            if (detected.Confidence < 0.5)
+            if (sourceEncoding == null)
             {
-                LogOut($"识别度低于50%，{detected.Confidence:P0}。 {filePath}", CompletedStatus.跳过);
-                return false;
+                if (detected.Confidence < 0.5)
+                {
+                    LogOut($"识别度低于50%，{detected.Confidence:P0}。 {filePath}", CompletedStatus.跳过);
+                    return false;
+                }
+                sourceEncoding = detected.Encoding;
             }
-            Encoding sourceEncoding = detected.Encoding;
             bool hasBOM = targetEncoding.GetPreamble().Length > 0;
             if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM)
             {
@@ -338,28 +369,29 @@ namespace TextTranscoder
             using StreamWriter writer = new StreamWriter(outputFilePath, false, targetEncoding);
             writer.Write(text);
             writer.Close();
-            LogOut($"原始编码：{sourceEncoding.HeaderName}，识别度：{detected.Confidence:P0}。 {filePath}", CompletedStatus.完成);
+            LogOut($"原始编码：{sourceEncoding.HeaderName.ToUpper()}，识别度：{detected.Confidence:P0}。 {filePath}", CompletedStatus.完成);
             return true;
         }
 
         /// <summary>
         /// 将文件夹下的所有文件转码
         /// </summary>
-        /// <param name="folderPath"></param>
-        /// <param name="targetEncoding"></param>
-        private void TranscodeFolder(string folderPath, Encoding targetEncoding)
+        /// <param name="folderPath">文件夹路径</param>
+        /// <param name="targetEncoding">目标编码</param>
+        /// <param name="sourceEncoding">源编码，设置为null即为自动识别</param>
+        private void TranscodeFolder(string folderPath, Encoding targetEncoding, Encoding? sourceEncoding = null)
         {
             string[] files = Directory.GetFiles(folderPath);
             foreach (string file in files)
             {
-                TranscodeFile(file, targetEncoding);
+                TranscodeFile(file, targetEncoding, sourceEncoding);
             }
 
             if(!FolderRecursiveTraversal) return;
             string[] folders = Directory.GetDirectories(folderPath);
             foreach (string folder in folders)
             {
-                TranscodeFolder(folder, targetEncoding);
+                TranscodeFolder(folder, targetEncoding, sourceEncoding);
             }
         }
 
