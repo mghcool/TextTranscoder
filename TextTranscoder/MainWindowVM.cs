@@ -184,6 +184,7 @@ namespace TextTranscoder
         [RelayCommand]
         private void TranscodingHistory()
         {
+            if(TranscodeingDialogLog == string.Empty) return;
             Dialog dialog = Dialog.Show<TranscodeingDialog>();
         }
 
@@ -288,7 +289,7 @@ namespace TextTranscoder
                     // 排除模式
                     if (fileInfo.Name.EndsWith(filter))
                     {
-                        LogOut($"文件存在排除标签，跳过。 {filePath}");
+                        LogOut($"文件存在排除标签。 {filePath}", CompletedStatus.跳过);
                         return false;
                     }
                 }
@@ -297,34 +298,34 @@ namespace TextTranscoder
                     // 包含模式
                     if (!fileInfo.Name.EndsWith(filter))
                     {
-                        LogOut($"文件不存在包含标签，跳过。 {filePath}");
+                        LogOut($"文件不存在包含标签。 {filePath}", CompletedStatus.跳过);
                         return false;
                     }
                 }
             }
             if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024))
             {
-                LogOut($"文件大于10MB，跳过。 {filePath}");
+                LogOut($"文件大于10MB。 {filePath}", CompletedStatus.跳过);
                 return false;
             }
             using FileStream fileStream = File.OpenRead(filePath);
             DetectionDetail? detected = CharsetDetector.DetectFromStream(fileStream).Detected;
             if(detected == null)
             {
-                LogOut($"文件可能为非文本，跳过。 {filePath}");
+                LogOut($"文件可能为非文本。 {filePath}", CompletedStatus.跳过);
                 return false;
             }
             
             if (detected.Confidence < 0.5)
             {
-                LogOut($"识别度低于50%，{detected.Confidence:P0}，跳过。 {filePath}");
+                LogOut($"识别度低于50%，{detected.Confidence:P0}。 {filePath}", CompletedStatus.跳过);
                 return false;
             }
             Encoding sourceEncoding = detected.Encoding;
             bool hasBOM = targetEncoding.GetPreamble().Length > 0;
             if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM)
             {
-                LogOut($"编码相同，跳过。 {filePath}");
+                LogOut($"编码相同。 {filePath}", CompletedStatus.跳过);
                 return true;
             }
             fileStream.Position = 0;
@@ -337,7 +338,7 @@ namespace TextTranscoder
             using StreamWriter writer = new StreamWriter(outputFilePath, false, targetEncoding);
             writer.Write(text);
             writer.Close();
-            LogOut($"原始编码：{sourceEncoding.HeaderName}，识别度：{detected.Confidence:P0}。 {filePath}");
+            LogOut($"原始编码：{sourceEncoding.HeaderName}，识别度：{detected.Confidence:P0}。 {filePath}", CompletedStatus.完成);
             return true;
         }
 
@@ -366,6 +367,11 @@ namespace TextTranscoder
         /// 输出日志
         /// </summary>
         private void LogOut(string msg) => TranscodeingDialogLog += $"{DateTime.Now:HH:mm:ss.fff} | {msg}{Environment.NewLine}";
+
+        /// <summary>
+        /// 输出带状态的日志日志
+        /// </summary>
+        private void LogOut(string msg, CompletedStatus status) => LogOut($"{status} {msg}");
 
         /// <summary>
         /// 清理日志
