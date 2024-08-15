@@ -23,16 +23,12 @@ namespace TextTranscoder
 
         private void ListView_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            ListView listView = (ListView)sender;
-            GridViewColumn column = ((GridView)listView.View).Columns[1];
-            column.Width = e.NewSize.Width - 130;
+            GridViewColumn_Path.Width = e.NewSize.Width - 130;
         }
 
         private void ElementGroup_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            ItemsControl container = (ItemsControl)sender;
-            TextBox textBox = (TextBox)container.Items[1];
-            textBox.Width = e.NewSize.Width - 120;
+            TextBox_OutputDirectory.Width = e.NewSize.Width - 120;
         }
     }
 }

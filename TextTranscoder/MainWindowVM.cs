@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HandyControl.Controls;
@@ -14,10 +14,10 @@ namespace TextTranscoder
     public partial class MainWindowVM : ObservableObject
     {
         /// <summary>输入编码列表</summary>
-        public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 (BOM)", "GBK"];
+        public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "UTF32", "UTF32 Big", "GBK", "Shift JIS", "EUC-KR"];
 
         /// <summary>输出编码列表</summary>
-        public string[] OutputEncodingList { get; } = ["系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 (BOM)", "UTF32", "UTF32 (BOM)", "GBK"];
+        public string[] OutputEncodingList { get; } = ["系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "UTF32", "UTF32 Big", "GBK", "Shift JIS", "EUC-KR"];
 
         /// <summary>过滤模式列表</summary>
         public string[] FilterModeList { get; } = ["排除", "包含"];
@@ -140,6 +140,26 @@ namespace TextTranscoder
         }
 
         /// <summary>
+        /// 文件拖放操作
+        /// </summary>
+        [RelayCommand]
+        private void ListViewDrop(DragEventArgs e)
+        {
+            string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string path in paths)
+            {
+                if (Directory.Exists(path))
+                {
+                    InputPathList.Add(new InputPathInfo(true, path, false));
+                }
+                else
+                {
+                    InputPathList.Add(new InputPathInfo(false, path, false));
+                }
+            }
+        }
+
+        /// <summary>
         /// 移除选中项
         /// </summary>
         [RelayCommand]
@@ -159,6 +179,15 @@ namespace TextTranscoder
         }
 
         /// <summary>
+        /// 转码历史
+        /// </summary>
+        [RelayCommand]
+        private void TranscodingHistory()
+        {
+            Dialog dialog = Dialog.Show<TranscodeingDialog>();
+        }
+
+        /// <summary>
         /// 浏览输出目录
         /// </summary>
         [RelayCommand]
@@ -172,12 +201,40 @@ namespace TextTranscoder
         }
 
         /// <summary>
+        /// 输出目录拖放操作
+        /// </summary>
+        /// <param name="e"></param>
+        [RelayCommand]
+        private void OutputDirectoryDrop(DragEventArgs e)
+        {
+            string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string path in paths)
+            {
+                if (Directory.Exists(path))
+                {
+                    OutputDirectory = path;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// 开始转码
         /// </summary>
         [RelayCommand]
         private async Task StartTranscode()
         {
             if (InputPathList.Count == 0) return;
+            if (!OverwriteSourceFile && string.IsNullOrWhiteSpace(OutputDirectory))
+            {
+                Growl.Warning(new ()
+                {
+                    WaitTime = 2,
+                    Message = "请选择输出目录",
+                    ShowDateTime = true
+                });
+                return;
+            }
             LogClear();
             Dialog dialog = Dialog.Show<TranscodeingDialog>();
             IsTranscoding = true;
@@ -189,13 +246,13 @@ namespace TextTranscoder
             else if (SelectedOutputEncodingIndex == 2)
                 outEncoding = new UTF8Encoding(true);
             else if (SelectedOutputEncodingIndex == 3)
-                outEncoding = new UnicodeEncoding(true, false);
+                outEncoding = new UnicodeEncoding(false, false);
             else if (SelectedOutputEncodingIndex == 4)
-                outEncoding = new UnicodeEncoding(true, true);
+                outEncoding = new UnicodeEncoding(true, false);
             else if (SelectedOutputEncodingIndex == 5)
-                outEncoding = new UTF32Encoding(true, false);
+                outEncoding = new UTF32Encoding(false, false);
             else if (SelectedOutputEncodingIndex == 6)
-                outEncoding = new UTF32Encoding(true, true);
+                outEncoding = new UTF32Encoding(true, false);
             else
                 outEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
             await Task.Run(() =>
@@ -203,10 +260,14 @@ namespace TextTranscoder
                 foreach (InputPathInfo inputPathInfo in InputPathList)
                 {
                     if (inputPathInfo.IsDirectory)
+                    {
                         TranscodeFolder(inputPathInfo.Path, outEncoding);
+                        inputPathInfo.IsComplete = true;
+                    }
                     else
-                        TranscodeFile(inputPathInfo.Path, outEncoding);
-                    inputPathInfo.IsComplete = true;
+                    {
+                        inputPathInfo.IsComplete = TranscodeFile(inputPathInfo.Path, outEncoding);
+                    }
                 }
             });
             IsTranscoding = false;
@@ -217,28 +278,46 @@ namespace TextTranscoder
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="targetEncoding"></param>
-        private void TranscodeFile(string filePath, Encoding targetEncoding)
+        private bool TranscodeFile(string filePath, Encoding targetEncoding)
         {
             FileInfo fileInfo = new FileInfo(filePath);
-            if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024)) return;
-
+            if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024))
+            {
+                LogOut($"文件大于10MB，跳过。 {filePath}");
+                return false;
+            }
             using FileStream fileStream = File.OpenRead(filePath);
             DetectionDetail? detected = CharsetDetector.DetectFromStream(fileStream).Detected;
-            if(detected == null) return;
+            if(detected == null)
+            {
+                LogOut($"文件可能为非文本，跳过。 {filePath}");
+                return false;
+            }
+            
+            if (detected.Confidence < 0.5)
+            {
+                LogOut($"识别度低于50%，{detected.Confidence:P0}，跳过。 {filePath}");
+                return false;
+            }
             Encoding sourceEncoding = detected.Encoding;
-            if(detected.Confidence < 0.5) Debug.WriteLine($"Confidence: {detected.Confidence}");
             bool hasBOM = targetEncoding.GetPreamble().Length > 0;
-            if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM) return;
-            Debug.WriteLine($"{sourceEncoding.HeaderName} >> {targetEncoding.HeaderName} {detected.Confidence:P0}\t{filePath}");
-
+            if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM)
+            {
+                LogOut($"编码相同，跳过。 {filePath}");
+                return true;
+            }
             fileStream.Position = 0;
             using StreamReader reader = new StreamReader(fileStream, sourceEncoding);
             string text = reader.ReadToEnd();
             reader.Close();
-            using StreamWriter writer = new StreamWriter(filePath, false, targetEncoding);
+
+            string outputFilePath = filePath;
+            if (!OverwriteSourceFile) outputFilePath = Path.Combine(OutputDirectory, fileInfo.Name);
+            using StreamWriter writer = new StreamWriter(outputFilePath, false, targetEncoding);
             writer.Write(text);
             writer.Close();
-            LogOut($"{sourceEncoding.HeaderName} >> {targetEncoding.HeaderName} {detected.Confidence:P0}\t{filePath}");
+            LogOut($"原始编码：{sourceEncoding.HeaderName}，识别度：{detected.Confidence:P0}。 {filePath}");
+            return true;
         }
 
         /// <summary>

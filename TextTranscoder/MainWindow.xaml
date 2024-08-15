@@ -107,7 +107,13 @@
                     ItemsSource="{Binding InputPathList}"
                     SelectedIndex="{Binding SelectedInputPathListIndex}"
                     HorizontalAlignment="Stretch"
+                    AllowDrop="True"
                     SizeChanged="ListView_SizeChanged">
+                    <hc:Interaction.Triggers>
+                        <hc:EventTrigger EventName="Drop">
+                            <hc:EventToCommand Command="{Binding ListViewDropCommand}" PassEventArgsToCommand="True"/>
+                        </hc:EventTrigger>
+                    </hc:Interaction.Triggers>
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="类型" Width="50">
@@ -137,7 +143,7 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                             <!--<GridViewColumn Header="路径" Width="300" DisplayMemberBinding="{Binding Path}" />-->
-                            <GridViewColumn Header="路径">
+                            <GridViewColumn Header="路径" x:Name="GridViewColumn_Path">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Path}" ToolTip="{Binding Path}" TextTrimming="CharacterEllipsis" Width="Auto" />
@@ -188,6 +194,7 @@
                                 IsChecked="{Binding FolderRecursiveTraversal}"
                                 Padding="0" />
                         </Border>
+                        <Button Content="转码记录" Command="{Binding TranscodingHistoryCommand}"/>
                     </hc:UniformSpacingPanel>
                 </Border>
             </Grid>
@@ -217,12 +224,17 @@
                     Layout="Stack"
                     IsEnabled="{Binding OverwriteSourceFile, Converter={StaticResource Boolean2BooleanReConverter}}"
                     SizeChanged="ElementGroup_SizeChanged">
-                    <Border Style="{StaticResource BorderRegion}" Background="{StaticResource DarkDefaultBrush}" Padding="6 0">
+                    <Border Style="{StaticResource BorderRegion}" Background="{StaticResource DarkDefaultBrush}" Padding="6 0" AllowDrop="True">
+                        <hc:Interaction.Triggers>
+                            <hc:EventTrigger EventName="Drop">
+                                <hc:EventToCommand Command="{Binding OutputDirectoryDropCommand}" PassEventArgsToCommand="True"/>
+                            </hc:EventTrigger>
+                        </hc:Interaction.Triggers>
                         <TextBlock Text="输出目录：" VerticalAlignment="Center" />
                     </Border>
-                     <TextBox MinWidth="210" IsReadOnly="True" Text="{Binding OutputDirectory}" />
-                     <Button Content="浏览" Command="{Binding BrowseOutputDirectoryCommand}"/>
-                 </hc:ElementGroup>
+                    <TextBox x:Name="TextBox_OutputDirectory" MinWidth="210" IsReadOnly="True" Text="{Binding OutputDirectory}" />
+                    <Button Content="浏览" Command="{Binding BrowseOutputDirectoryCommand}"/>
+                </hc:ElementGroup>
             </DockPanel>
         </Border>
     </Grid>

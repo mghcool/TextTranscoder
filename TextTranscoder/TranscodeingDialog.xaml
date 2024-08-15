@@ -7,8 +7,8 @@
     xmlns:local="clr-namespace:TextTranscoder"
     xmlns:hc="https://handyorg.github.io/handycontrol"
     mc:Ignorable="d"
-    Width="400"
-    Height="247"
+    Width="500"
+    Height="300"
     DataContext="{Binding Source={StaticResource MainWindowVM}}"
     d:DataContext="{d:DesignInstance Type=local:MainWindowVM}"
     Background="Transparent">
