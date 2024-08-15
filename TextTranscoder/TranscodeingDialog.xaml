@@ -1,0 +1,42 @@
+﻿<UserControl
+    x:Class="TextTranscoder.TranscodeingDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:TextTranscoder"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    mc:Ignorable="d"
+    Width="400"
+    Height="247"
+    DataContext="{Binding Source={StaticResource MainWindowVM}}"
+    d:DataContext="{d:DesignInstance Type=local:MainWindowVM}"
+    Background="Transparent">
+    <Border CornerRadius="5" Background="{StaticResource BorderBrush}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBox
+                Grid.Row="0"
+                Padding="5"
+                Text="{Binding TranscodeingDialogLog}"
+                Background="{StaticResource BorderBrush}"
+                VerticalContentAlignment="Top"
+                AcceptsReturn="True"
+                IsReadOnly="True"
+                FontFamily="Consolas"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                TextChanged="TextBox_TextChanged" />
+            <Button
+                Grid.Row="1"
+                Content="退出"
+                Margin="5"
+                IsEnabled="{Binding IsTranscoding, Converter={StaticResource Boolean2BooleanReConverter}}"
+                Command="hc:ControlCommands.Close"
+                HorizontalAlignment="Stretch" />
+        </Grid>
+    </Border>
+</UserControl>

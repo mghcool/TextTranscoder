@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HandyControl.Controls;
 using Microsoft.Win32;
 using UtfUnknown;
 
@@ -12,22 +13,22 @@ namespace TextTranscoder
 {
     public partial class MainWindowVM : ObservableObject
     {
-        /// <summary></summary>
+        /// <summary>输入编码列表</summary>
         public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 (BOM)", "GBK"];
 
-        /// <summary></summary>
+        /// <summary>输出编码列表</summary>
         public string[] OutputEncodingList { get; } = ["系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 (BOM)", "UTF32", "UTF32 (BOM)", "GBK"];
 
-        /// <summary></summary>
+        /// <summary>过滤模式列表</summary>
         public string[] FilterModeList { get; } = ["排除", "包含"];
 
-        /// <summary></summary>
+        /// <summary>输入编码选中索引</summary>
         [ObservableProperty]
         private int _selectedInputEncodingIndex = 0;
 
-        /// <summary></summary>
+        /// <summary>输出编码选中索引</summary>
         [ObservableProperty]
-        private int _selectedOutputEncodingIndex = 0;
+        private int _selectedOutputEncodingIndex = 1;
 
         /// <summary>过滤模式的选择</summary>
         [ObservableProperty]
@@ -69,6 +70,10 @@ namespace TextTranscoder
         /// <summary>表示正在转码中</summary>
         [ObservableProperty]
         private bool _isTranscoding = false;
+
+        /// <summary>转码中对话框日志</summary>
+        [ObservableProperty]
+        private string _transcodeingDialogLog = string.Empty;
 
         public MainWindowVM()
         {
@@ -170,8 +175,11 @@ namespace TextTranscoder
         /// 开始转码
         /// </summary>
         [RelayCommand]
-        private void StartTranscode()
+        private async Task StartTranscode()
         {
+            if (InputPathList.Count == 0) return;
+            LogClear();
+            Dialog dialog = Dialog.Show<TranscodeingDialog>();
             IsTranscoding = true;
             Encoding outEncoding;
             if (SelectedOutputEncodingIndex == 0)
@@ -190,14 +198,17 @@ namespace TextTranscoder
                 outEncoding = new UTF32Encoding(true, true);
             else
                 outEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
-            foreach (InputPathInfo inputPathInfo in InputPathList)
+            await Task.Run(() =>
             {
-                if (inputPathInfo.IsDirectory)
-                    TranscodeFolder(inputPathInfo.Path, outEncoding);
-                else
-                    TranscodeFile(inputPathInfo.Path, outEncoding);
-                inputPathInfo.IsComplete = true;
-            }
+                foreach (InputPathInfo inputPathInfo in InputPathList)
+                {
+                    if (inputPathInfo.IsDirectory)
+                        TranscodeFolder(inputPathInfo.Path, outEncoding);
+                    else
+                        TranscodeFile(inputPathInfo.Path, outEncoding);
+                    inputPathInfo.IsComplete = true;
+                }
+            });
             IsTranscoding = false;
         }
 
@@ -212,12 +223,13 @@ namespace TextTranscoder
             if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024)) return;
 
             using FileStream fileStream = File.OpenRead(filePath);
-            DetectionResult result = CharsetDetector.DetectFromStream(fileStream);
-            Encoding sourceEncoding = result.Detected.Encoding;
-            if(result.Detected.Confidence < 0.5) Debug.WriteLine($"Confidence: {result.Detected.Confidence}");
+            DetectionDetail? detected = CharsetDetector.DetectFromStream(fileStream).Detected;
+            if(detected == null) return;
+            Encoding sourceEncoding = detected.Encoding;
+            if(detected.Confidence < 0.5) Debug.WriteLine($"Confidence: {detected.Confidence}");
             bool hasBOM = targetEncoding.GetPreamble().Length > 0;
-            if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == result.Detected.HasBOM) return;
-            Debug.WriteLine($"{sourceEncoding.HeaderName} >> {targetEncoding.HeaderName} {result.Detected.Confidence:P0}\t{filePath}");
+            if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM) return;
+            Debug.WriteLine($"{sourceEncoding.HeaderName} >> {targetEncoding.HeaderName} {detected.Confidence:P0}\t{filePath}");
 
             fileStream.Position = 0;
             using StreamReader reader = new StreamReader(fileStream, sourceEncoding);
@@ -226,6 +238,7 @@ namespace TextTranscoder
             using StreamWriter writer = new StreamWriter(filePath, false, targetEncoding);
             writer.Write(text);
             writer.Close();
+            LogOut($"{sourceEncoding.HeaderName} >> {targetEncoding.HeaderName} {detected.Confidence:P0}\t{filePath}");
         }
 
         /// <summary>
@@ -248,5 +261,15 @@ namespace TextTranscoder
                 TranscodeFolder(folder, targetEncoding);
             }
         }
+
+        /// <summary>
+        /// 输出日志
+        /// </summary>
+        private void LogOut(string msg) => TranscodeingDialogLog += $"{DateTime.Now:HH:mm:ss.fff} | {msg}{Environment.NewLine}";
+
+        /// <summary>
+        /// 清理日志
+        /// </summary>
+        private void LogClear() => TranscodeingDialogLog = string.Empty;
     }
 }
