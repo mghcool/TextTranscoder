@@ -281,6 +281,27 @@ namespace TextTranscoder
         private bool TranscodeFile(string filePath, Encoding targetEncoding)
         {
             FileInfo fileInfo = new FileInfo(filePath);
+            foreach (string filter in FilterLists)
+            {
+                if (SelectedFilterModeIndex == 0)
+                {
+                    // 排除模式
+                    if (fileInfo.Name.EndsWith(filter))
+                    {
+                        LogOut($"文件存在排除标签，跳过。 {filePath}");
+                        return false;
+                    }
+                }
+                else if (SelectedFilterModeIndex == 1)
+                {
+                    // 包含模式
+                    if (!fileInfo.Name.EndsWith(filter))
+                    {
+                        LogOut($"文件不存在包含标签，跳过。 {filePath}");
+                        return false;
+                    }
+                }
+            }
             if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024))
             {
                 LogOut($"文件大于10MB，跳过。 {filePath}");
