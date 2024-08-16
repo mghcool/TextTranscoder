@@ -12,7 +12,7 @@
             <local:MainWindowVM x:Key="MainWindowVM" d:IsDataSource="True" />
             <ResourceDictionary.MergedDictionaries>
                 <!--HandyControl-->
-                <hc:ThemeResources xmlns:hc="https://handyorg.github.io/handycontrol" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
