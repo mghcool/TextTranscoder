@@ -311,27 +311,37 @@ namespace TextTranscoder
         private bool TranscodeFile(string filePath, Encoding targetEncoding, Encoding? sourceEncoding = null)
         {
             FileInfo fileInfo = new FileInfo(filePath);
-            foreach (string filter in FilterLists)
+            if (SelectedFilterModeIndex == 0)
             {
-                if (SelectedFilterModeIndex == 0)
+                // 排除模式
+                foreach (string filter in FilterLists)
                 {
-                    // 排除模式
                     if (fileInfo.Name.EndsWith(filter))
                     {
                         LogOut($"文件存在排除标签。 {filePath}", CompletedStatus.跳过);
                         return false;
                     }
                 }
-                else if (SelectedFilterModeIndex == 1)
+            }
+            else if (SelectedFilterModeIndex == 1)
+            {
+                // 包含模式
+                bool isContains = false;
+                foreach (string filter in FilterLists)
                 {
-                    // 包含模式
-                    if (!fileInfo.Name.EndsWith(filter))
+                    if (fileInfo.Name.EndsWith(filter))
                     {
-                        LogOut($"文件不存在包含标签。 {filePath}", CompletedStatus.跳过);
-                        return false;
+                        isContains = true;
+                        break;
                     }
                 }
+                if (!isContains)
+                {
+                    LogOut($"文件不存在包含标签。 {filePath}", CompletedStatus.跳过);
+                    return false;
+                }
             }
+            
             if (!fileInfo.Exists || fileInfo.Length > (10 * 1024 * 1024))
             {
                 LogOut($"文件大于10MB。 {filePath}", CompletedStatus.跳过);
