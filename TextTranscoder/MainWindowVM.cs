@@ -316,7 +316,7 @@ namespace TextTranscoder
                 // 排除模式
                 foreach (string filter in FilterLists)
                 {
-                    if (fileInfo.Name.EndsWith(filter))
+                    if (fileInfo.Name.EndsWith(filter, StringComparison.OrdinalIgnoreCase))
                     {
                         LogOut($"文件存在排除标签。 {filePath}", CompletedStatus.跳过);
                         return false;
@@ -329,7 +329,7 @@ namespace TextTranscoder
                 bool isContains = false;
                 foreach (string filter in FilterLists)
                 {
-                    if (fileInfo.Name.EndsWith(filter))
+                    if (fileInfo.Name.EndsWith(filter, StringComparison.OrdinalIgnoreCase))
                     {
                         isContains = true;
                         break;

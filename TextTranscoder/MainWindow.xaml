@@ -88,7 +88,7 @@
                     VerticalContentAlignment="Center"
                     ScrollViewer.CanContentScroll="True" />
                 <hc:ElementGroup Grid.Column="2" Orientation="Horizontal" Layout="Stack" VerticalAlignment="Center">
-                    <TextBox Width="60" Text="{Binding AddFilterTagText}"/>
+                    <TextBox Width="60" Text="{Binding AddFilterTagText}" ToolTip="不区分大小写"/>
                     <Button Content="添加" Command="{Binding AddFilterTagCommand}"/>
                     <Button Content="清空" Command="{Binding ClearFilterTagCommand}"/>
                 </hc:ElementGroup>
