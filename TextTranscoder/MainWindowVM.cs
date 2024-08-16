@@ -243,24 +243,7 @@ namespace TextTranscoder
             Dialog dialog = Dialog.Show<TranscodeingDialog>();
             IsTranscoding = true;
 
-            Encoding outputEncoding;
-            if (SelectedOutputEncodingIndex == 0)
-                outputEncoding = SystemDefaultEncoding;
-            else if (SelectedOutputEncodingIndex == 1)
-                outputEncoding = new UTF8Encoding(false);
-            else if (SelectedOutputEncodingIndex == 2)
-                outputEncoding = new UTF8Encoding(true);
-            else if (SelectedOutputEncodingIndex == 3)
-                outputEncoding = new UnicodeEncoding(false, false);
-            else if (SelectedOutputEncodingIndex == 4)
-                outputEncoding = new UnicodeEncoding(true, false);
-            else if (SelectedOutputEncodingIndex == 5)
-                outputEncoding = new UTF32Encoding(false, false);
-            else if (SelectedOutputEncodingIndex == 6)
-                outputEncoding = new UTF32Encoding(true, false);
-            else
-                outputEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
-
+            // 输入编码
             Encoding? inputEncoding = null;
             if (SelectedInputEncodingIndex == 0)
                 inputEncoding = null;
@@ -271,15 +254,34 @@ namespace TextTranscoder
             else if (SelectedInputEncodingIndex == 3)
                 inputEncoding = new UTF8Encoding(true);
             else if (SelectedInputEncodingIndex == 4)
-                inputEncoding = new UnicodeEncoding(false, false);
+                inputEncoding = new UnicodeEncoding(false, true);
             else if (SelectedInputEncodingIndex == 5)
-                inputEncoding = new UnicodeEncoding(true, false);
+                inputEncoding = new UnicodeEncoding(true, true);
             else if (SelectedInputEncodingIndex == 6)
-                inputEncoding = new UTF32Encoding(false, false);
+                inputEncoding = new UTF32Encoding(false, true);
             else if (SelectedInputEncodingIndex == 7)
-                inputEncoding = new UTF32Encoding(true, false);
+                inputEncoding = new UTF32Encoding(true, true);
             else
                 inputEncoding = Encoding.GetEncoding(InputEncodingList[SelectedInputEncodingIndex]);
+
+            // 输出编码
+            Encoding outputEncoding;
+            if (SelectedOutputEncodingIndex == 0)
+                outputEncoding = SystemDefaultEncoding;
+            else if (SelectedOutputEncodingIndex == 1)
+                outputEncoding = new UTF8Encoding(false);
+            else if (SelectedOutputEncodingIndex == 2)
+                outputEncoding = new UTF8Encoding(true);
+            else if (SelectedOutputEncodingIndex == 3)
+                outputEncoding = new UnicodeEncoding(false, true);
+            else if (SelectedOutputEncodingIndex == 4)
+                outputEncoding = new UnicodeEncoding(true, true);
+            else if (SelectedOutputEncodingIndex == 5)
+                outputEncoding = new UTF32Encoding(false, true);
+            else if (SelectedOutputEncodingIndex == 6)
+                outputEncoding = new UTF32Encoding(true, true);
+            else
+                outputEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
 
             LogOut($"转码信息，输入编码：{InputEncodingList[SelectedInputEncodingIndex]}，输出编码：{OutputEncodingList[SelectedOutputEncodingIndex]} 。");
 
@@ -354,6 +356,7 @@ namespace TextTranscoder
                 LogOut($"文件可能为非文本。 {filePath}", CompletedStatus.跳过);
                 return false;
             }
+            bool sourceEncodingHasBOM = false;
             if (sourceEncoding == null)
             {
                 if (detected.Confidence < 0.5)
@@ -362,9 +365,14 @@ namespace TextTranscoder
                     return false;
                 }
                 sourceEncoding = detected.Encoding;
+                sourceEncodingHasBOM = detected.HasBOM;
             }
-            bool hasBOM = targetEncoding.GetPreamble().Length > 0;
-            if(sourceEncoding.CodePage == targetEncoding.CodePage && hasBOM == detected.HasBOM)
+            else
+            {
+                sourceEncodingHasBOM = sourceEncoding.GetPreamble().Length > 0;
+            }
+            bool targetEncodingHasBOM = targetEncoding.GetPreamble().Length > 0;
+            if(sourceEncoding.CodePage == targetEncoding.CodePage && targetEncodingHasBOM == sourceEncodingHasBOM)
             {
                 LogOut($"编码相同。 {filePath}", CompletedStatus.跳过);
                 return true;
@@ -379,7 +387,7 @@ namespace TextTranscoder
             using StreamWriter writer = new StreamWriter(outputFilePath, false, targetEncoding);
             writer.Write(text);
             writer.Close();
-            LogOut($"原始编码：{sourceEncoding.HeaderName.ToUpper()}，识别度：{detected.Confidence:P0}。 {filePath}", CompletedStatus.完成);
+            LogOut($"原始编码：{sourceEncoding.HeaderName.ToUpper()}{(sourceEncodingHasBOM ? " (BOM)" : "")}，识别度：{detected.Confidence:P0}。 {filePath}", CompletedStatus.完成);
             return true;
         }
 
