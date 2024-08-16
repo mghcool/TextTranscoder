@@ -168,7 +168,7 @@ namespace TextTranscoder
         [RelayCommand]
         private void RemoveSelected()
         {
-            if(SelectedInputPathListIndex > 0)
+            if(SelectedInputPathListIndex >= 0)
                 InputPathList.RemoveAt(SelectedInputPathListIndex);
         }
 
