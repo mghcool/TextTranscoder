@@ -12,7 +12,7 @@
     WindowStartupLocation="CenterScreen"
     DataContext="{Binding Source={StaticResource MainWindowVM}}"
     d:DataContext="{d:DesignInstance Type=local:MainWindowVM}"
-    Title="文本转码器"
+    Title="{Binding VersionString, StringFormat=文本转码器 {0}}"
     MinHeight="450"
     MinWidth="600"
     Height="450"

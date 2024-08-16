@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,6 +14,9 @@ namespace TextTranscoder
 {
     public partial class MainWindowVM : ObservableObject
     {
+        /// <summary>版本号字符串</summary>
+        public string VersionString { get; }
+
         /// <summary>输入编码列表</summary>
         public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "GBK", "Shift JIS", "EUC-KR"];
 
@@ -81,6 +85,8 @@ namespace TextTranscoder
         public MainWindowVM()
         {
             SystemDefaultEncodingName = SystemDefaultEncoding.HeaderName.ToUpper();
+            Version v = Assembly.GetExecutingAssembly().GetName().Version!;
+            VersionString = $"v{v.Major}.{v.Minor}.{v.Build}";
         }
 
         /// <summary>

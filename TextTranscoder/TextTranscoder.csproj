@@ -9,7 +9,7 @@
     <ApplicationManifest>App.manifest</ApplicationManifest>
 	<ApplicationIcon>Resources\icon.ico</ApplicationIcon>
 	<AssemblyTitle>文本转码器</AssemblyTitle>
-	<Version>1.1.0</Version>
+	<Version>0.9.1</Version>
 	<FileVersion>$(Version)</FileVersion>
 	<AssemblyVersion>$(Version)</AssemblyVersion>
 	<Copyright>© 2023 Mgh. All rights reserved.</Copyright>
