@@ -14,8 +14,6 @@
                 <!--HandyControl-->
                 <hc:ThemeResources xmlns:hc="https://handyorg.github.io/handycontrol" />
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
-                <!--自定义样式-->
-                <!--<ResourceDictionary Source="/Style.xaml" />-->
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
