@@ -14,10 +14,10 @@ namespace TextTranscoder
     public partial class MainWindowVM : ObservableObject
     {
         /// <summary>输入编码列表</summary>
-        public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "UTF32", "UTF32 Big", "GBK", "Shift JIS", "EUC-KR"];
+        public string[] InputEncodingList { get; } = ["自动识别", "系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "GBK", "Shift JIS", "EUC-KR"];
 
         /// <summary>输出编码列表</summary>
-        public string[] OutputEncodingList { get; } = ["系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "UTF32", "UTF32 Big", "GBK", "Shift JIS", "EUC-KR"];
+        public string[] OutputEncodingList { get; } = ["系统默认", "UTF8", "UTF8 (BOM)", "UTF16", "UTF16 Big", "GBK", "Shift JIS", "EUC-KR"];
 
         /// <summary>过滤模式列表</summary>
         public string[] FilterModeList { get; } = ["排除", "包含"];
@@ -257,10 +257,6 @@ namespace TextTranscoder
                 inputEncoding = new UnicodeEncoding(false, true);
             else if (SelectedInputEncodingIndex == 5)
                 inputEncoding = new UnicodeEncoding(true, true);
-            else if (SelectedInputEncodingIndex == 6)
-                inputEncoding = new UTF32Encoding(false, true);
-            else if (SelectedInputEncodingIndex == 7)
-                inputEncoding = new UTF32Encoding(true, true);
             else
                 inputEncoding = Encoding.GetEncoding(InputEncodingList[SelectedInputEncodingIndex]);
 
@@ -276,10 +272,6 @@ namespace TextTranscoder
                 outputEncoding = new UnicodeEncoding(false, true);
             else if (SelectedOutputEncodingIndex == 4)
                 outputEncoding = new UnicodeEncoding(true, true);
-            else if (SelectedOutputEncodingIndex == 5)
-                outputEncoding = new UTF32Encoding(false, true);
-            else if (SelectedOutputEncodingIndex == 6)
-                outputEncoding = new UTF32Encoding(true, true);
             else
                 outputEncoding = Encoding.GetEncoding(OutputEncodingList[SelectedOutputEncodingIndex]);
 
